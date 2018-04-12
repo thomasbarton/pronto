@@ -41,14 +41,16 @@ module Pronto
     def create_pull_request_review(comments)
       return if comments.empty?
 
-      options = {
-        event: 'COMMENT',
-        accept: 'application/vnd.github.black-cat-preview+json', # https://developer.github.com/v3/pulls/reviews/#create-a-pull-request-review
-        comments: comments.map do |c|
-          { path: c.path, position: c.position, body: c.body }
-        end
-      }
-      client.create_pull_request_review(slug, pull_id, options)
+      comments.each_slice(100) do |cs|
+        options = {
+          event: 'COMMENT',
+          accept: 'application/vnd.github.black-cat-preview+json', # https://developer.github.com/v3/pulls/reviews/#create-a-pull-request-review
+          comments: cs.map do |c|
+            { path: c.path, position: c.position, body: c.body }
+          end
+        }
+        client.create_pull_request_review(slug, pull_id, options)
+      end
     end
 
     def create_commit_status(status)
